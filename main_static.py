@@ -10,31 +10,27 @@ class App:
         self.root.title("АИС Отдел кадров")
         self.root.geometry("350x250")
 
-        self.login_frame = tk.Frame(root, padx=20, pady=20)
-        self.login_frame.pack(expand=True)
+        self.frame = tk.Frame(root, padx=20, pady=20)
+        self.frame.pack(expand=True)
 
-        tk.Label(self.login_frame, text="Авторизация", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
-
-        tk.Label(self.login_frame, text="Логин:").grid(row=1, column=0, sticky="e")
-        self.u_entry = tk.Entry(self.login_frame)
-        self.u_entry.grid(row=1, column=1, pady=5)
-
-        tk.Label(self.login_frame, text="Пароль:").grid(row=2, column=0, sticky="e")
-        self.p_entry = tk.Entry(self.login_frame, show="*")
-        self.p_entry.grid(row=2, column=1, pady=5)
-
-        tk.Button(self.login_frame, text="Вход", width=10, command=self.login).grid(row=3, column=0, columnspan=2,
-                                                                                    pady=15)
+        tk.Label(self.frame, text="Авторизация", font=("Arial", 12)).grid(row=0, column=0, columnspan=2, pady=10)
+        tk.Label(self.frame, text="Логин:").grid(row=1, column=0, sticky="e")
+        self.u_entry = tk.Entry(self.frame)
+        self.u_entry.grid(row=1, column=1)
+        tk.Label(self.frame, text="Пароль:").grid(row=2, column=0, sticky="e")
+        self.p_entry = tk.Entry(self.frame, show="*")
+        self.p_entry.grid(row=2, column=1)
+        tk.Button(self.frame, text="Вход", width=10, command=self.login).grid(row=3, column=0, columnspan=2, pady=15)
 
     def login(self):
         auth = auth_module.AuthService()
         rights = auth.check_auth(self.u_entry.get(), self.p_entry.get())
 
         if rights is not None:
-            self.login_frame.destroy()
+            self.frame.destroy()
             self.build_ui(rights)
         else:
-            messagebox.showerror("Ошибка", "Доступ отклонен")
+            messagebox.showerror("Ошибка", "Неверный логин или пароль")
 
     def build_ui(self, rights):
         ms = menu_module.MenuService()
@@ -45,24 +41,18 @@ class App:
 
         submenus = {}
         for item in items:
-            state = "disabled" if item['disabled'] else "normal"
-
+            st = "disabled" if item['disabled'] else "normal"
             if item['level'] == 0:
                 if item['method'] is None:
                     sub = tk.Menu(menubar, tearoff=0)
-                    menubar.add_cascade(label=item['name'], menu=sub, state=state)
+                    menubar.add_cascade(label=item['name'], menu=sub, state=st)
                     submenus[item['name']] = sub
                 else:
-                    menubar.add_command(label=item['name'], state=state,
-                                        command=lambda n=item['name']: self.action(n))
-            elif item['level'] == 1:
-                if submenus:
-                    last_menu = list(submenus.values())[-1]
-                    last_menu.add_command(label=item['name'], state=state,
-                                          command=lambda n=item['name']: self.action(n))
-
-    def action(self, name):
-        messagebox.showinfo("Метод", f"Вызван: {name}")
+                    menubar.add_command(label=item['name'], state=st,
+                                        command=lambda n=item['name']: messagebox.showinfo("Ок", n))
+            elif item['level'] == 1 and submenus:
+                list(submenus.values())[-1].add_command(label=item['name'], state=st,
+                                                        command=lambda n=item['name']: messagebox.showinfo("Ок", n))
 
 
 if __name__ == "__main__":
